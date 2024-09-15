@@ -4,6 +4,7 @@ const BoardSchema = new Schema({
   username: {
     type: String,
     required: true,
+    unique: true,
   },
   total_battles: {
     type: Number,

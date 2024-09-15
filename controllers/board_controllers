@@ -10,6 +10,42 @@ const getAllScores = async (req, res) => {
   }
 };
 
+//get All scores find by username
+
+const getScoreBoardByusername = async (req, res) => {
+  try {
+    const { username } = req.params;
+    const user = await Board.findOne({ username });
+    if (user) {
+      res.status(200).json({ user });
+    } else {
+      res.status(200).json({ message: "No user found" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Error retrieving scores", error });
+  }
+};
+
+//edit score find by username
+
+const EditScoreBoardByusername = async (req, res) => {
+  try {
+    const { username, total_battles, battles_won, battles_lost } = req.body;
+    const updatedUser = await Board.findOneAndUpdate(
+      { username },
+      { total_battles, battles_won, battles_lost },
+      { new: true } // Return the updated document
+    );
+    if (updatedUser) {
+      res.status(200).json({ updatedUser });
+    } else {
+      res.status(200).json({ message: "No user found" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Error retrieving scores", error });
+  }
+};
+
 //create a new score
 const createScore = async (req, res) => {
   try {
@@ -24,7 +60,7 @@ const createScore = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const newScore = Board.create({
+    const newScore = await Board.create({
       username,
       total_battles,
       battles_won,
@@ -34,11 +70,13 @@ const createScore = async (req, res) => {
       .status(201)
       .json({ message: "New Score created successfully", newScore });
   } catch (er) {
-    res.status(500).json(er);
+    res.status(500).json({ message: "Error creating score", er });
   }
 };
 
 module.exports = {
   getAllScores,
   createScore,
+  getScoreBoardByusername,
+  EditScoreBoardByusername,
 };
