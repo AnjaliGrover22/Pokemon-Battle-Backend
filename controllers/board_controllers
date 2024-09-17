@@ -1,6 +1,6 @@
 const Board = require("../schemas/Board");
 
-//get All scores
+// Get all scores
 const getAllScores = async (req, res) => {
   try {
     const scores = await Board.find();
@@ -10,44 +10,73 @@ const getAllScores = async (req, res) => {
   }
 };
 
-//get All scores find by username
-
-const getScoreBoardByusername = async (req, res) => {
+// Get score by username
+const getScoreBoardByUsername = async (req, res) => {
   try {
     const { username } = req.params;
     const user = await Board.findOne({ username });
     if (user) {
-      res.status(200).json({ user });
+      res.status(200).json(user); // No need to wrap user in another object
     } else {
-      res.status(200).json({ message: "No user found" });
+      res.status(404).json({ message: "No user found" });
     }
   } catch (error) {
-    res.status(500).json({ message: "Error retrieving scores", error });
+    res.status(500).json({ message: "Error retrieving user score", error });
   }
 };
 
-//edit score find by username
-
-const EditScoreBoardByusername = async (req, res) => {
+// Edit score or create new if not exists
+const createOrUpdateScore = async (req, res) => {
   try {
-    const { username, total_battles, battles_won, battles_lost } = req.body;
-    const updatedUser = await Board.findOneAndUpdate(
-      { username },
-      { total_battles, battles_won, battles_lost },
-      { new: true } // Return the updated document
-    );
-    if (updatedUser) {
-      res.status(200).json({ updatedUser });
+    const { username } = req.params; // Get username from URL params
+    const { total_battles, battles_won, battles_lost } = req.body;
+
+    // Check for missing fields
+    if (
+      total_battles === undefined ||
+      battles_won === undefined ||
+      battles_lost === undefined
+    ) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // Find the existing user
+    const existingUser = await Board.findOne({ username });
+
+    if (existingUser) {
+      // Update the user's scores
+      const updatedUser = await Board.findOneAndUpdate(
+        { username },
+        {
+          $set: {
+            total_battles: existingUser.total_battles + total_battles,
+            battles_won: existingUser.battles_won + battles_won,
+            battles_lost: existingUser.battles_lost + battles_lost,
+          },
+        },
+        { new: true } // Return the updated document
+      );
+
+      // Respond with the updated user
+      return res.status(200).json(updatedUser);
     } else {
-      res.status(200).json({ message: "No user found" });
+      // Create a new score if user does not exist
+      const newScore = await Board.create({
+        username,
+        total_battles,
+        battles_won,
+        battles_lost,
+      });
+      return res.status(201).json(newScore);
     }
   } catch (error) {
-    res.status(500).json({ message: "Error retrieving scores", error });
+    res
+      .status(500)
+      .json({ message: "Error creating or updating score", error });
   }
 };
 
-//create a new score
-const createScore = async (req, res) => {
+const createNewScore = async (req, res) => {
   try {
     const { username, total_battles, battles_won, battles_lost } = req.body;
 
@@ -57,7 +86,7 @@ const createScore = async (req, res) => {
       battles_won === undefined ||
       battles_lost === undefined
     ) {
-      return res.status(400).json({ message: "Missing required fields" });
+      return res.status(400).json({ message: "All fields are required" });
     }
 
     const newScore = await Board.create({
@@ -66,17 +95,16 @@ const createScore = async (req, res) => {
       battles_won,
       battles_lost,
     });
-    res
-      .status(201)
-      .json({ message: "New Score created successfully", newScore });
-  } catch (er) {
-    res.status(500).json({ message: "Error creating score", er });
+
+    res.status(201).json(newScore);
+  } catch (error) {
+    res.status(500).json({ message: "Error creating new score", error });
   }
 };
 
 module.exports = {
   getAllScores,
-  createScore,
-  getScoreBoardByusername,
-  EditScoreBoardByusername,
+  createOrUpdateScore,
+  getScoreBoardByUsername,
+  createNewScore,
 };

@@ -1,18 +1,22 @@
 const express = require("express");
-
+const router = express.Router();
 const {
+  createOrUpdateScore,
   getAllScores,
-  createScore,
-  getScoreBoardByusername,
-  EditScoreBoardByusername,
+  getScoreBoardByUsername,
+  createNewScore,
 } = require("../controllers/board_controllers");
 
-const api = express.Router();
+// Get all scores
+router.get("/", getAllScores);
 
-api.route("/").get(getAllScores).post(createScore);
-api
-  .route("/:username")
-  .get(getScoreBoardByusername)
-  .put(EditScoreBoardByusername);
+// Get score by username
+router.get("/:username", getScoreBoardByUsername);
 
-module.exports = api;
+// Create or update score
+router.put("/:username", createOrUpdateScore); // Update existing score or create a new one if it exists
+
+// Create new score (separate route if needed)
+router.post("/", createNewScore); // Use POST for creating new scores if needed
+
+module.exports = router;
