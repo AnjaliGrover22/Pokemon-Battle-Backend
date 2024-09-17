@@ -46,17 +46,20 @@ const createOrUpdateScore = async (req, res) => {
     }
 
     // Find the existing user
-    const existingUser = await Board.findOne({ username });
+    // const existingUser = await Board.findOne({ username });
+    const existingUser = await Board.findOne({
+      username: { $regex: new RegExp("^" + username + "$", "i") },
+    });
 
     if (existingUser) {
       // Update the user's scores
       const updatedUser = await Board.findOneAndUpdate(
-        { username },
+        { username: username },
         {
           $set: {
-            total_battles: existingUser.total_battles + total_battles,
-            battles_won: existingUser.battles_won + battles_won,
-            battles_lost: existingUser.battles_lost + battles_lost,
+            total_battles: total_battles,
+            battles_won: battles_won,
+            battles_lost: battles_lost,
           },
         },
         { new: true } // Return the updated document
