@@ -14,7 +14,12 @@ const getAllScores = async (req, res) => {
 const getScoreBoardByUsername = async (req, res) => {
   try {
     const { username } = req.params;
-    const user = await Board.findOne({ username });
+
+    // const user = await Board.findOne({ username: username });
+    const user = await Board.findOne({
+      username: { $regex: new RegExp("^" + username + "$", "i") },
+    });
+
     if (user) {
       res.status(200).json(user); // No need to wrap user in another object
     } else {
