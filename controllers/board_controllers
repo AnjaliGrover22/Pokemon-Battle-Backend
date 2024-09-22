@@ -68,6 +68,7 @@ const createOrUpdateScore = async (req, res) => {
       // Respond with the updated user
       return res.status(200).json(updatedUser);
     } else {
+      console.log("Inside else of existing user");
       // Create a new score if user does not exist
       const newScore = await Board.create({
         username,
@@ -75,6 +76,7 @@ const createOrUpdateScore = async (req, res) => {
         battles_won,
         battles_lost,
       });
+
       return res.status(201).json(newScore);
     }
   } catch (error) {
